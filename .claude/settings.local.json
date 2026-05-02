@@ -1,0 +1,29 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -c \"import PyPDF2; reader = PyPDF2.PdfReader\\(r''C:\\\\_code\\\\Parts\\\\OonkoO\\\\oonkoo-talent\\\\documents\\\\OonkoO_Recruitement_Profit_Model_2026\\(With Dollar Rate\\).pdf''\\); [print\\(p.extract_text\\(\\)\\) for p in reader.pages]\")",
+      "Bash(python3 -c \"import PyPDF2; reader = PyPDF2.PdfReader\\(r''C:\\\\_code\\\\Parts\\\\OonkoO\\\\oonkoo-talent\\\\documents\\\\OonkoO_Recruitement_Profit_Model_2026\\(With Dollar Rate\\).pdf''\\); [print\\(p.extract_text\\(\\)\\) for p in reader.pages]\")",
+      "Bash(pip install:*)",
+      "Bash(pip3 install:*)",
+      "Bash(python:*)",
+      "Bash(npx prisma:*)",
+      "Bash(npm install:*)",
+      "Bash(npx eslint:*)",
+      "Bash(npx tsc:*)",
+      "Bash(ls:*)",
+      "Bash(npm run:*)",
+      "Bash(npx shadcn@latest add sidebar sheet tooltip dropdown-menu avatar separator breadcrumb card skeleton --yes)",
+      "Bash(npx shadcn@4.1.1 add sidebar sheet tooltip dropdown-menu avatar separator breadcrumb card skeleton --overwrite)",
+      "Bash(ls \"app/\\(dashboard\\)/\")",
+      "Bash(cd:*)",
+      "Bash(mkdir -p dashboard)",
+      "Bash(cp -r \"\\(dashboard\\)\"/* dashboard/)",
+      "Bash(node:*)",
+      "Bash(npx shadcn@4.1.1 add table badge switch label select textarea dialog alert-dialog sonner --overwrite)",
+      "Bash(grep -r import.*Decimal /c/_code/Parts/OonkoO/oonkoo-talent/app/)",
+      "Bash(python -c \":*)",
+      "Bash(npm ls:*)",
+      "Bash(npx shadcn@4.1.1 add chart --overwrite)"
+    ]
+  }
+}

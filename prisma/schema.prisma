@@ -1,0 +1,299 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enums ────────────────────────────────────────────────────────────────────
+
+enum EmployeeStatus {
+  active
+  inactive
+  on_leave
+}
+
+enum DocumentType {
+  offer_letter
+  terms_conditions
+  bank_info
+  other
+}
+
+enum InvoiceType {
+  company
+  agent
+}
+
+enum InvoiceScope {
+  all
+  by_role
+  individual
+}
+
+enum InvoiceStatus {
+  draft
+  finalized
+  downloaded
+}
+
+enum LeadSource {
+  CONTACT_FORM
+  SIGNUP
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  QUALIFIED
+  CONVERTED
+  REJECTED
+}
+
+// ─── Models ───────────────────────────────────────────────────────────────────
+
+model Company {
+  id             String   @id @default(uuid()) @db.Uuid
+  name           String
+  slug           String   @unique
+  logoUrl        String?  @map("logo_url")
+  country        String
+  currency       String   @default("CAD")
+  contactName    String   @map("contact_name")
+  contactEmail   String   @map("contact_email")
+  billingAddress String?  @map("billing_address")
+  agreedRateBdt  Decimal  @map("agreed_rate_bdt") @db.Decimal(10, 4)
+  agentEnabled   Boolean  @default(false) @map("agent_enabled")
+  isActive       Boolean  @default(true) @map("is_active")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  agents         Agent[]
+  rateConfigs    RateConfig[]
+  employees      Employee[]
+  invoiceBatches InvoiceBatch[]
+  lead           Lead?
+
+  @@map("companies")
+}
+
+model Agent {
+  id              String   @id @default(uuid()) @db.Uuid
+  companyId       String   @map("company_id") @db.Uuid
+  name            String
+  email           String?
+  phone           String?
+  revenueSharePct Decimal  @map("revenue_share_pct") @db.Decimal(5, 2)
+  notes           String?
+  isActive        Boolean  @default(true) @map("is_active")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  company        Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  invoiceBatches InvoiceBatch[]
+
+  @@map("agents")
+}
+
+model EmployeeRole {
+  id          String   @id @default(uuid()) @db.Uuid
+  title       String
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  rateConfigs      RateConfig[]
+  employees        Employee[]
+  invoiceLineItems InvoiceLineItem[]
+
+  @@map("employee_roles")
+}
+
+model RateConfig {
+  id                String    @id @default(uuid()) @db.Uuid
+  companyId         String    @map("company_id") @db.Uuid
+  roleId            String    @map("role_id") @db.Uuid
+  billRateCad       Decimal   @map("bill_rate_cad") @db.Decimal(8, 2)
+  defaultPayRateCad Decimal   @map("default_pay_rate_cad") @db.Decimal(8, 2)
+  maxPayRateCad     Decimal   @map("max_pay_rate_cad") @db.Decimal(8, 2)
+  hoursPerMonth     Decimal   @map("hours_per_month") @db.Decimal(8, 2)
+  effectiveFrom     DateTime  @map("effective_from") @db.Date
+  effectiveTo       DateTime? @map("effective_to") @db.Date
+
+  company Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  role    EmployeeRole @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@map("rate_configs")
+}
+
+model Employee {
+  id                String         @id @default(uuid()) @db.Uuid
+  companyId         String         @map("company_id") @db.Uuid
+  roleId            String         @map("role_id") @db.Uuid
+  fullName          String         @map("full_name")
+  email             String
+  phone             String?
+  nidNumber         String?        @map("nid_number")
+  passportNumber    String?        @map("passport_number")
+  address           String?
+  bankAccountNumber String?        @map("bank_account_number")
+  bankName          String?        @map("bank_name")
+  bankAccountHolder String?        @map("bank_account_holder")
+  bankBranchName    String?        @map("bank_branch_name")
+  emergencyName     String?        @map("emergency_name")
+  emergencyRelation String?        @map("emergency_relation")
+  emergencyPhone    String?        @map("emergency_phone")
+  payRateCad        Decimal        @map("pay_rate_cad") @db.Decimal(8, 2)
+  actualSalaryBdt   Decimal        @map("actual_salary_bdt") @db.Decimal(10, 2)
+  startDate         DateTime       @map("start_date") @db.Date
+  endDate           DateTime?      @map("end_date") @db.Date
+  status            EmployeeStatus @default(active)
+  notes             String?
+  createdAt         DateTime       @default(now()) @map("created_at")
+
+  company          Company            @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  role             EmployeeRole       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  documents        EmployeeDocument[]
+  invoiceLineItems InvoiceLineItem[]
+
+  @@map("employees")
+}
+
+model EmployeeDocument {
+  id            String       @id @default(uuid()) @db.Uuid
+  employeeId    String       @map("employee_id") @db.Uuid
+  documentType  DocumentType @map("document_type")
+  fileName      String       @map("file_name")
+  fileUrl       String       @map("file_url")
+  fileSizeBytes Int?         @map("file_size_bytes")
+  notes         String?
+  uploadedAt    DateTime     @default(now()) @map("uploaded_at")
+
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@map("employee_documents")
+}
+
+model InvoiceBatch {
+  id          String  @id @default(uuid()) @db.Uuid
+  companyId   String  @map("company_id") @db.Uuid
+  agentId     String? @map("agent_id") @db.Uuid
+  periodYear  Int     @map("period_year")
+  periodMonth Int     @map("period_month")
+  periodLabel String  @map("period_label")
+
+  invoiceType         InvoiceType   @map("invoice_type")
+  companyInvoiceScope InvoiceScope? @map("company_invoice_scope")
+
+  // Exchange rates (snapshot at generation time)
+  agreedRateBdt  Decimal @map("agreed_rate_bdt") @db.Decimal(10, 4)
+  sendingRateBdt Decimal @map("sending_rate_bdt") @db.Decimal(10, 4)
+
+  // Computed revenue metrics
+  totalHours         Decimal @map("total_hours") @db.Decimal(10, 2)
+  totalRevenueCad    Decimal @map("total_revenue_cad") @db.Decimal(10, 2)
+  totalSalaryCostCad Decimal @map("total_salary_cost_cad") @db.Decimal(10, 2)
+  grossProfitCad     Decimal @map("gross_profit_cad") @db.Decimal(10, 2)
+
+  // Agent split
+  agentSharePct Decimal? @map("agent_share_pct") @db.Decimal(5, 2)
+  agentShareCad Decimal? @map("agent_share_cad") @db.Decimal(10, 2)
+
+  // Owner earnings
+  ownerBaseShareCad Decimal @map("owner_base_share_cad") @db.Decimal(10, 2)
+
+  // Toggleable extras (owner-only)
+  roleRevisedEnabled        Boolean @default(true) @map("role_revised_enabled")
+  ownerRoleRevisedSavingCad Decimal @map("owner_role_revised_saving_cad") @db.Decimal(10, 2)
+  fxAdvantageEnabled        Boolean @default(true) @map("fx_advantage_enabled")
+  ownerFxAdvantageCad       Decimal @map("owner_fx_advantage_cad") @db.Decimal(10, 2)
+  ownerTotalCad             Decimal @map("owner_total_cad") @db.Decimal(10, 2)
+
+  // BDT equivalents (at agreed_rate)
+  totalRevenueBdt Decimal @map("total_revenue_bdt") @db.Decimal(12, 2)
+  grossProfitBdt  Decimal @map("gross_profit_bdt") @db.Decimal(12, 2)
+  ownerTotalBdt   Decimal @map("owner_total_bdt") @db.Decimal(12, 2)
+
+  // Status
+  status       InvoiceStatus @default(draft)
+  notes        String?
+  createdAt    DateTime      @default(now()) @map("created_at")
+  finalizedAt  DateTime?     @map("finalized_at")
+  downloadedAt DateTime?     @map("downloaded_at")
+
+  company   Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  agent     Agent?            @relation(fields: [agentId], references: [id], onDelete: SetNull)
+  lineItems InvoiceLineItem[]
+
+  @@map("invoice_batches")
+}
+
+model InvoiceLineItem {
+  id                   String  @id @default(uuid()) @db.Uuid
+  batchId              String  @map("batch_id") @db.Uuid
+  employeeId           String  @map("employee_id") @db.Uuid
+  roleId               String  @map("role_id") @db.Uuid
+  billRateCad          Decimal @map("bill_rate_cad") @db.Decimal(8, 2)
+  payRateCad           Decimal @map("pay_rate_cad") @db.Decimal(8, 2)
+  hours                Decimal @db.Decimal(8, 2)
+  revenueCad           Decimal @map("revenue_cad") @db.Decimal(10, 2)
+  costCad              Decimal @map("cost_cad") @db.Decimal(10, 2)
+  profitCad            Decimal @map("profit_cad") @db.Decimal(10, 2)
+  actualSalaryBdt      Decimal @map("actual_salary_bdt") @db.Decimal(10, 2)
+  roleRevisedSavingBdt Decimal @map("role_revised_saving_bdt") @db.Decimal(10, 2)
+  roleRevisedSavingCad Decimal @map("role_revised_saving_cad") @db.Decimal(10, 2)
+  fxAdvantageCad       Decimal @map("fx_advantage_cad") @db.Decimal(10, 2)
+
+  batch    InvoiceBatch @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  employee Employee     @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  role     EmployeeRole @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@map("invoice_line_items")
+}
+
+model Lead {
+  id     String     @id @default(uuid()) @db.Uuid
+  source LeadSource
+  status LeadStatus @default(NEW)
+
+  // Contact basics — required for both paths.
+  companyName  String? @map("company_name")
+  contactName  String  @map("contact_name")
+  contactEmail String  @map("contact_email")
+  contactPhone String? @map("contact_phone")
+
+  // Signup-only — null for CONTACT_FORM leads.
+  kindeUserId String? @unique @map("kinde_user_id")
+
+  // Onboarding form data.
+  teamSize        Int?    @map("team_size")
+  roleBreakdown   Json?   @map("role_breakdown") // { "fullstack": 3, "bi": 1, "design": 1 }
+  employmentType  String? @map("employment_type") // "full_time" | "part_time" | "contract"
+  experienceLevel String? @map("experience_level") // "junior" | "mid" | "senior" | "mixed"
+
+  // Free-text — both paths.
+  message String?
+
+  // Conversion — set when owner promotes Lead → Company.
+  convertedCompanyId String?   @unique @map("converted_company_id") @db.Uuid
+  convertedCompany   Company?  @relation(fields: [convertedCompanyId], references: [id], onDelete: SetNull)
+  convertedAt        DateTime? @map("converted_at")
+
+  notes     LeadNote[]
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
+
+  @@index([status, createdAt])
+  @@map("leads")
+}
+
+model LeadNote {
+  id        String   @id @default(uuid()) @db.Uuid
+  leadId    String   @map("lead_id") @db.Uuid
+  body      String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  lead Lead @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@map("lead_notes")
+}

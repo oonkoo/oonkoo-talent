@@ -1,0 +1,491 @@
+{
+  "version": "1.0.0",
+  "lastScanned": 1775348140824,
+  "projectRoot": "C:\\_code\\Parts\\OonkoO\\oonkoo-talent",
+  "techStack": {
+    "languages": [
+      {
+        "name": "JavaScript/TypeScript",
+        "version": null,
+        "confidence": "high",
+        "markers": [
+          "package.json"
+        ]
+      },
+      {
+        "name": "TypeScript",
+        "version": null,
+        "confidence": "high",
+        "markers": [
+          "tsconfig.json"
+        ]
+      }
+    ],
+    "frameworks": [
+      {
+        "name": "next",
+        "version": "16.2.1",
+        "category": "fullstack"
+      },
+      {
+        "name": "react",
+        "version": "19.2.4",
+        "category": "frontend"
+      },
+      {
+        "name": "react-dom",
+        "version": "19.2.4",
+        "category": "frontend"
+      },
+      {
+        "name": "vitest",
+        "version": "3.2.4",
+        "category": "testing"
+      }
+    ],
+    "packageManager": "npm",
+    "runtime": null
+  },
+  "build": {
+    "buildCommand": "npm run build",
+    "testCommand": "npm test",
+    "lintCommand": "npm run lint",
+    "devCommand": "npm run dev",
+    "scripts": {
+      "dev": "next dev",
+      "build": "next build",
+      "start": "next start",
+      "lint": "eslint",
+      "test": "vitest run",
+      "test:watch": "vitest"
+    }
+  },
+  "conventions": {
+    "namingStyle": "camelCase",
+    "importStyle": "ES modules",
+    "testPattern": null,
+    "fileOrganization": null
+  },
+  "structure": {
+    "isMonorepo": false,
+    "workspaces": [],
+    "mainDirectories": [
+      "app",
+      "components",
+      "lib",
+      "public"
+    ],
+    "gitBranches": null
+  },
+  "customNotes": [],
+  "directoryMap": {
+    "app": {
+      "path": "app",
+      "purpose": "Application code",
+      "fileCount": 4,
+      "lastAccessed": 1775348140790,
+      "keyFiles": [
+        "favicon.ico",
+        "globals.css",
+        "layout.tsx",
+        "page.tsx"
+      ]
+    },
+    "components": {
+      "path": "components",
+      "purpose": "UI components",
+      "fileCount": 3,
+      "lastAccessed": 1775348140791,
+      "keyFiles": [
+        "app-sidebar.tsx",
+        "dashboard-header.tsx",
+        "data-table.tsx"
+      ]
+    },
+    "documents": {
+      "path": "documents",
+      "purpose": null,
+      "fileCount": 4,
+      "lastAccessed": 1775348140800,
+      "keyFiles": [
+        "OonkoO_Recruitement_Profit_Model_2026(With Dollar Rate).pdf",
+        "oonkoo_talent_architecture_final.md",
+        "PROJECT_TRACKER.md",
+        "UX_RESEARCH_REPORT.md"
+      ]
+    },
+    "hooks": {
+      "path": "hooks",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1775348140803,
+      "keyFiles": [
+        "use-mobile.ts"
+      ]
+    },
+    "lib": {
+      "path": "lib",
+      "purpose": "Library code",
+      "fileCount": 8,
+      "lastAccessed": 1775348140803,
+      "keyFiles": [
+        "db.ts",
+        "nav.ts",
+        "pay-rate-guard.ts",
+        "pdf-templates.ts",
+        "revenue-calculator.ts"
+      ]
+    },
+    "prisma": {
+      "path": "prisma",
+      "purpose": null,
+      "fileCount": 2,
+      "lastAccessed": 1775348140804,
+      "keyFiles": [
+        "schema.prisma",
+        "seed.ts"
+      ]
+    },
+    "public": {
+      "path": "public",
+      "purpose": "Public files",
+      "fileCount": 6,
+      "lastAccessed": 1775348140804,
+      "keyFiles": [
+        "file.svg",
+        "globe.svg",
+        "next.svg",
+        "oonkoo_talent.svg",
+        "vercel.svg"
+      ]
+    },
+    "app\\api": {
+      "path": "app\\api",
+      "purpose": "API routes",
+      "fileCount": 0,
+      "lastAccessed": 1775348140805,
+      "keyFiles": []
+    },
+    "lib\\__tests__": {
+      "path": "lib\\__tests__",
+      "purpose": "Test files",
+      "fileCount": 1,
+      "lastAccessed": 1775348140808,
+      "keyFiles": [
+        "revenue-calculator.test.ts"
+      ]
+    },
+    "prisma\\migrations": {
+      "path": "prisma\\migrations",
+      "purpose": "Database migrations",
+      "fileCount": 1,
+      "lastAccessed": 1775348140808,
+      "keyFiles": [
+        "migration_lock.toml"
+      ]
+    }
+  },
+  "hotPaths": [
+    {
+      "path": "app\\dashboard\\employees\\new\\onboard-form.tsx",
+      "accessCount": 18,
+      "lastAccessed": 1775359933937,
+      "type": "directory"
+    },
+    {
+      "path": "app\\dashboard\\employees\\[id]\\edit\\edit-employee-form.tsx",
+      "accessCount": 15,
+      "lastAccessed": 1775359975085,
+      "type": "directory"
+    },
+    {
+      "path": "app\\dashboard\\employees\\actions.ts",
+      "accessCount": 15,
+      "lastAccessed": 1775369942074,
+      "type": "file"
+    },
+    {
+      "path": "app\\dashboard\\invoices\\[id]\\page.tsx",
+      "accessCount": 13,
+      "lastAccessed": 1775428587256,
+      "type": "file"
+    },
+    {
+      "path": "app\\dashboard\\invoices\\new\\company\\company-invoice-wizard.tsx",
+      "accessCount": 12,
+      "lastAccessed": 1775353424593,
+      "type": "file"
+    },
+    {
+      "path": "app\\dashboard\\companies\\[slug]\\rates\\rate-config-table.tsx",
+      "accessCount": 12,
+      "lastAccessed": 1775369449128,
+      "type": "file"
+    },
+    {
+      "path": "app\\dashboard\\employees\\[id]\\page.tsx",
+      "accessCount": 12,
+      "lastAccessed": 1775428487308,
+      "type": "file"
+    },
+    {
+      "path": "app\\dashboard\\invoices\\actions.ts",
+      "accessCount": 7,
+      "lastAccessed": 1775353797243,
+      "type": "file"
+    },
+    {
+      "path": "app\\api\\invoices\\[id]\\pdf\\route.ts",
+      "accessCount": 6,
+      "lastAccessed": 1775354448019,
+      "type": "file"
+    },
+    {
+      "path": "prisma\\schema.prisma",
+      "accessCount": 5,
+      "lastAccessed": 1775428383268,
+      "type": "file"
+    },
+    {
+      "path": "app\\dashboard\\layout.tsx",
+      "accessCount": 5,
+      "lastAccessed": 1775428427310,
+      "type": "file"
+    },
+    {
+      "path": "app\\dashboard\\employees\\[id]\\documents\\page.tsx",
+      "accessCount": 5,
+      "lastAccessed": 1775428543117,
+      "type": "file"
+    },
+    {
+      "path": "app\\dashboard\\invoices\\new\\agent\\agent-invoice-wizard.tsx",
+      "accessCount": 4,
+      "lastAccessed": 1775353438446,
+      "type": "file"
+    },
+    {
+      "path": "app\\dashboard\\invoices\\[id]\\report\\page.tsx",
+      "accessCount": 4,
+      "lastAccessed": 1775428601037,
+      "type": "file"
+    },
+    {
+      "path": "app\\dashboard\\invoices",
+      "accessCount": 3,
+      "lastAccessed": 1775352741548,
+      "type": "directory"
+    },
+    {
+      "path": "app\\dashboard\\companies\\actions.ts",
+      "accessCount": 3,
+      "lastAccessed": 1775369370449,
+      "type": "file"
+    },
+    {
+      "path": "lib\\uploadthing.ts",
+      "accessCount": 3,
+      "lastAccessed": 1775370639056,
+      "type": "file"
+    },
+    {
+      "path": "app\\layout.tsx",
+      "accessCount": 2,
+      "lastAccessed": 1775352383947,
+      "type": "file"
+    },
+    {
+      "path": "app\\dashboard",
+      "accessCount": 2,
+      "lastAccessed": 1775352758394,
+      "type": "directory"
+    },
+    {
+      "path": "app\\dashboard\\companies\\new\\company-wizard.tsx",
+      "accessCount": 2,
+      "lastAccessed": 1775353450633,
+      "type": "directory"
+    },
+    {
+      "path": "app\\dashboard\\revenue\\page.tsx",
+      "accessCount": 2,
+      "lastAccessed": 1775353899340,
+      "type": "file"
+    },
+    {
+      "path": "app\\dashboard\\settings\\page.tsx",
+      "accessCount": 2,
+      "lastAccessed": 1775354166338,
+      "type": "file"
+    },
+    {
+      "path": "app\\dashboard\\settings\\roles\\page.tsx",
+      "accessCount": 2,
+      "lastAccessed": 1775354183274,
+      "type": "file"
+    },
+    {
+      "path": "app\\dashboard\\not-found.tsx",
+      "accessCount": 2,
+      "lastAccessed": 1775354561204,
+      "type": "file"
+    },
+    {
+      "path": "app\\dashboard\\revenue\\loading.tsx",
+      "accessCount": 2,
+      "lastAccessed": 1775354561279,
+      "type": "file"
+    },
+    {
+      "path": "prisma.config.ts",
+      "accessCount": 2,
+      "lastAccessed": 1775357775167,
+      "type": "file"
+    },
+    {
+      "path": "app\\dashboard\\employees\\new\\page.tsx",
+      "accessCount": 2,
+      "lastAccessed": 1775358919194,
+      "type": "file"
+    },
+    {
+      "path": "",
+      "accessCount": 2,
+      "lastAccessed": 1775369224372,
+      "type": "directory"
+    },
+    {
+      "path": ".agents\\skills\\uploadthing-nextjs\\SKILL.md",
+      "accessCount": 2,
+      "lastAccessed": 1775369887269,
+      "type": "file"
+    },
+    {
+      "path": "documents\\PROJECT_TRACKER.md",
+      "accessCount": 1,
+      "lastAccessed": 1775348202067,
+      "type": "file"
+    },
+    {
+      "path": "app\\dashboard\\invoices\\columns.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1775352347153,
+      "type": "file"
+    },
+    {
+      "path": "components\\providers.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1775352370626,
+      "type": "file"
+    },
+    {
+      "path": ".agents\\skills\\react-pdf\\SKILL.md",
+      "accessCount": 1,
+      "lastAccessed": 1775352599294,
+      "type": "file"
+    },
+    {
+      "path": "app\\dashboard\\invoices\\[id]\\report\\owner-report.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1775353850646,
+      "type": "file"
+    },
+    {
+      "path": "app\\dashboard\\revenue\\revenue-charts.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1775353919950,
+      "type": "file"
+    },
+    {
+      "path": "app\\dashboard\\settings\\roles\\actions.ts",
+      "accessCount": 1,
+      "lastAccessed": 1775354176075,
+      "type": "file"
+    },
+    {
+      "path": "app\\dashboard\\settings\\roles\\role-list.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1775354202772,
+      "type": "file"
+    },
+    {
+      "path": "proxy.ts",
+      "accessCount": 1,
+      "lastAccessed": 1775354402966,
+      "type": "file"
+    },
+    {
+      "path": "lib\\auth.ts",
+      "accessCount": 1,
+      "lastAccessed": 1775354412587,
+      "type": "file"
+    },
+    {
+      "path": "app\\dashboard\\error.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1775354474714,
+      "type": "file"
+    },
+    {
+      "path": "app\\dashboard\\loading.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1775354502335,
+      "type": "file"
+    },
+    {
+      "path": "app\\dashboard\\companies\\loading.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1775354505510,
+      "type": "file"
+    },
+    {
+      "path": "app\\dashboard\\employees\\loading.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1775354508024,
+      "type": "file"
+    },
+    {
+      "path": "app\\dashboard\\invoices\\loading.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1775354511237,
+      "type": "file"
+    },
+    {
+      "path": "app\\dashboard\\settings\\loading.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1775354517416,
+      "type": "file"
+    },
+    {
+      "path": "app\\dashboard\\settings\\roles\\loading.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1775354520092,
+      "type": "file"
+    },
+    {
+      "path": "lib\\serialize.ts",
+      "accessCount": 1,
+      "lastAccessed": 1775369200181,
+      "type": "file"
+    },
+    {
+      "path": "app",
+      "accessCount": 1,
+      "lastAccessed": 1775369209560,
+      "type": "directory"
+    },
+    {
+      "path": "app\\api\\uploadthing\\core.ts",
+      "accessCount": 1,
+      "lastAccessed": 1775369930651,
+      "type": "file"
+    },
+    {
+      "path": "app\\api\\uploadthing\\route.ts",
+      "accessCount": 1,
+      "lastAccessed": 1775369931375,
+      "type": "file"
+    }
+  ],
+  "userDirectives": []
+}

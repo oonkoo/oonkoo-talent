@@ -4,12 +4,16 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "prisma generate --no-engine && next build",
     "start": "next start",
-    "lint": "eslint",
-    "test": "vitest run",
+    "lint": "next lint",
     "test:watch": "vitest",
-    "db:reset": "prisma migrate reset --force"
+    "db:reset": "prisma migrate reset --force",
+    "postinstall": "prisma generate --no-engine",
+    "prisma:update": "npx prisma generate && npx prisma db push",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "@json-render/core": "^0.16.0",

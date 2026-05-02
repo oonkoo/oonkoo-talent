@@ -8,13 +8,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ```bash
 npm run dev                            # Next.js 16 dev server
-npm run build                          # Production build
+npm run build                          # prisma generate && prisma migrate deploy && next build
 npm run lint                           # ESLint (flat config, next/core-web-vitals + TS)
 npm run test                           # Vitest, run-once
 npm run test:watch                     # Vitest, watch mode
 npm run db:reset                       # prisma migrate reset --force (DESTRUCTIVE)
 npx prisma generate                    # Regenerate client to lib/generated/prisma
-npx prisma migrate dev --name <name>   # Create and apply a migration
+npx prisma migrate dev --name <name>   # Create and apply a migration during development
+npx prisma migrate deploy              # Apply pending migrations to the target DB (used by build)
 ```
 
 Run a single test file: `npx vitest run lib/__tests__/revenue-calculator.test.ts`.
@@ -50,7 +51,7 @@ If you add a new top-level route group outside `dashboard/`, you still get edge 
 - Schema at `prisma/schema.prisma` defines 8 models: `Company`, `Agent`, `EmployeeRole`, `RateConfig`, `Employee`, `EmployeeDocument`, `InvoiceBatch`, `InvoiceLineItem`. Money fields are `Decimal`, dates use `@db.Date`.
 - Use the singleton client from `lib/db.ts` (`import { db } from "@/lib/db"`). Don't instantiate `PrismaClient` directly — dev hot-reload will leak connections.
 - **Always pipe Prisma results through `serialize()` from `lib/serialize.ts` before returning from a server action to a client component.** Prisma `Decimal` objects are not JSON-serializable across the RSC boundary. The helper recurses and converts `.toNumber()`-able objects to numbers. Search the `actions.ts` files for examples.
-- Generated client is committed under `lib/generated/prisma/` — re-run `npx prisma generate` after schema edits.
+- Generated client lives at `lib/generated/prisma/` and is **gitignored** — regenerated automatically by the `postinstall` script (and pre-build via `prisma generate && next build`). Re-run `npx prisma generate` manually after schema edits during dev to refresh local types.
 - `prisma.config.ts` uses the classic engine and loads `.env` via dotenv.
 
 ### Server actions convention

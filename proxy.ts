@@ -30,6 +30,12 @@ export function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!api/auth|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)",
+    // Skip:
+    //   - /api/auth/* (Kinde callbacks)
+    //   - /_next/* (Next.js internals)
+    //   - any path containing a "." — i.e. static files served from /public
+    //     (favicon.ico, oonkoo_talent.svg, /elements/*.svg, /people/*.png,
+    //     /fonts/*.ttf, sitemap.xml, robots.txt, etc.)
+    "/((?!api/auth|_next/static|_next/image|.*\\..*).*)",
   ],
 };

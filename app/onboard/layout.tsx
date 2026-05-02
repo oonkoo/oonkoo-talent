@@ -1,6 +1,9 @@
 import Link from "next/link";
 import Image from "next/image";
 
+// Auth-gated routes that touch the DB; never prerender.
+export const dynamic = "force-dynamic";
+
 export default function OnboardLayout({
   children,
 }: {

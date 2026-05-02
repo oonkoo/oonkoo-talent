@@ -2,6 +2,9 @@ import { redirect } from "next/navigation";
 import { isOwnerEmail, requireAuth } from "@/lib/auth";
 import { db } from "@/lib/db";
 
+// Reads the live Kinde session + Lead row; never prerender.
+export const dynamic = "force-dynamic";
+
 /**
  * Post-Kinde routing. The landing-page CTA sends users here with
  * post_login_redirect_url=/auth/callback. We resolve the user and forward

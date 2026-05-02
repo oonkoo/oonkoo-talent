@@ -5,6 +5,10 @@ import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { BreadcrumbProvider } from "@/components/breadcrumb-context";
 import { requireOwner } from "@/lib/auth";
 
+// Owner-gated routes must never be prerendered. requireOwner() and the
+// per-page DB queries depend on a real request context.
+export const dynamic = "force-dynamic";
+
 export default async function DashboardLayout({
   children,
 }: {

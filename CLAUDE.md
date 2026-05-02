@@ -8,14 +8,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ```bash
 npm run dev                            # Next.js 16 dev server
-npm run build                          # prisma generate && prisma migrate deploy && next build
-npm run lint                           # ESLint (flat config, next/core-web-vitals + TS)
-npm run test                           # Vitest, run-once
-npm run test:watch                     # Vitest, watch mode
+npm run build                          # prisma generate --no-engine && next build
+npm run lint                           # next lint
+npm run test                           # Vitest, watch mode
+npm run test:run                       # Vitest, run-once
+npm run test:coverage                  # Vitest with coverage
 npm run db:reset                       # prisma migrate reset --force (DESTRUCTIVE)
+npm run prisma:update                  # prisma generate && prisma db push (sync schema to DB)
 npx prisma generate                    # Regenerate client to lib/generated/prisma
-npx prisma migrate dev --name <name>   # Create and apply a migration during development
-npx prisma migrate deploy              # Apply pending migrations to the target DB (used by build)
+npx prisma migrate dev --name <name>   # Create and apply a migration locally during dev
 ```
 
 Run a single test file: `npx vitest run lib/__tests__/revenue-calculator.test.ts`.

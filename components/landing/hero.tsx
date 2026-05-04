@@ -26,60 +26,9 @@ const POD_TRANSFORMS = [
 
 export function LandingHero() {
   return (
-    <section className="ot-grain relative overflow-hidden h-screen">
-      {/* ───── Background atmospherics + brand elements ───── */}
-      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
-        {/* BRAND: large lime triangle anchoring the upper-right.
-            On cream paper this becomes the primary brand-signal. */}
-        <Image
-          src="/elements/lime-triangle.svg"
-          alt=""
-          width={620}
-          height={540}
-          aria-hidden
-          className="absolute -top-20 -right-16 w-[420px] h-auto rotate-[14deg] opacity-80 md:w-[600px] md:-top-28 md:-right-24"
-        />
+    <section className="ot-grain relative min-h-svh overflow-hidden">
 
-        {/* BRAND: large black circle drifting in from bottom-left. Subtle on
-            cream — reads as a soft shadow disc, anchors the composition. */}
-        <Image
-          src="/elements/black-circle.svg"
-          alt=""
-          width={780}
-          height={780}
-          aria-hidden
-          className="absolute -bottom-72 -left-60 w-[560px] h-[560px] opacity-[0.07] md:w-[780px] md:h-[780px] md:-bottom-96 md:-left-80"
-        />
-
-        {/* BRAND: medium black triangle, mid-right depth element. */}
-        <Image
-          src="/elements/black-triangle.svg"
-          alt=""
-          width={300}
-          height={263}
-          aria-hidden
-          className="absolute top-[62%] -right-12 w-[210px] h-auto rotate-[-22deg] opacity-[0.18] md:w-[300px]"
-        />
-
-        {/* BRAND: small lime circle accent, compositional rhythm above the stats row. */}
-        <Image
-          src="/elements/lime-circle.svg"
-          alt=""
-          width={140}
-          height={140}
-          aria-hidden
-          className="hidden md:block absolute bottom-44 left-[-3rem] w-[140px] h-[140px] opacity-[0.55]"
-        />
-
-        {/* Subtle warm wash emanating from the lime triangle */}
-        <div className="absolute inset-0 [background:radial-gradient(60%_45%_at_88%_8%,rgba(193,255,114,0.18),transparent_60%)]" />
-
-        {/* Faint dot grid (now in dark ink for the cream bg), masked to a
-            soft ellipse so it doesn't fight the type. */}
-        <div className="absolute inset-0 opacity-[0.38] [background-image:radial-gradient(rgba(12,10,7,0.28)_1px,transparent_1px)] [background-size:36px_36px] [mask-image:radial-gradient(ellipse_55%_55%_at_50%_50%,#000_15%,transparent_85%)]" />
-      </div>
-
-      <div className="relative mx-auto max-w-7xl px-6 lg:px-10 pt-40 pb-24 md:pt-52 md:pb-32">
+      <div className="relative mx-auto max-w-7xl h-full px-6 lg:px-10 pt-40 pb-24 md:pt-52 md:pb-32">
         <div className="grid grid-cols-12 gap-x-8">
           {/* ───── Main column ───── */}
           <div className="col-span-12 lg:col-span-9">
@@ -190,7 +139,7 @@ export function LandingHero() {
                   OonkoO Talent
                 </span>
                 <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground/70">
-                  Issue 06.2026
+                  Issue 2026
                 </span>
                 <span className="mt-2 h-px w-12 bg-foreground/15" />
               </div>
@@ -228,25 +177,28 @@ export function LandingHero() {
               <div className="flex flex-col items-end gap-1.5 pt-2">
                 <span className="h-px w-12 bg-foreground/15" />
                 <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground/70">
-                  Dhaka <span className="text-muted-foreground">↔</span> TORONTO
+                  Dhaka <span className="text-muted-foreground">↔</span> NORTH AMERICA
                 </span>
               </div>
             </div>
           </aside>
         </div>
-      </div>
 
-      {/* ───── Pod faces — layered photo collage, lg+ ───── */}
-      <div className="hidden lg:block absolute bottom-100 right-80 z-0">
-        <BounceCards
-          images={POD_FACES}
-          transformStyles={POD_TRANSFORMS}
-          containerWidth={460}
-          containerHeight={220}
-          animationDelay={1.1}
-          animationStagger={0.1}
-          enableHover
-        />
+        {/* ───── Pod faces — layered photo collage, lg+ ─────
+            Anchored to the inner max-w-7xl + h-full container so the
+            position stays stable across viewport widths and zoom levels.
+            Tweak bottom-* / right-* to taste. */}
+        <div className="hidden lg:block absolute bottom-80 right-10 z-0">
+          <BounceCards
+            images={POD_FACES}
+            transformStyles={POD_TRANSFORMS}
+            containerWidth={460}
+            containerHeight={220}
+            animationDelay={1.1}
+            animationStagger={0.1}
+            enableHover
+          />
+        </div>
       </div>
     </section>
   );

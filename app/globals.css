@@ -213,7 +213,56 @@
   animation: ot-pulse 2.4s ease-in-out infinite;
 }
 
-/* Reduced motion — kill the stagger and pulse for users who prefer it. */
+/* Auto-scrolling marquee — left-to-right (items move rightward).
+   Track must contain a duplicated set of items; we animate from
+   translateX(-50%) → translateX(0) so one full set scrolls through.
+   Using percent translateX (not translate3d) for broader compatibility
+   and starting opacity at 1 so reflow doesn't suppress the animation. */
+@keyframes ot-marquee-right {
+  0% {
+    transform: translateX(-50%);
+  }
+  100% {
+    transform: translateX(0%);
+  }
+}
+.ot-marquee-right {
+  animation: ot-marquee-right 40s linear infinite;
+  animation-fill-mode: both;
+  will-change: transform;
+  transform: translateX(-50%);
+}
+.ot-marquee-right:hover {
+  animation-play-state: paused;
+}
+
+/* Editorial underline-style input — no box, just a hairline that strengthens
+   on focus. Used by the landing contact form. */
+.ot-line-input {
+  width: 100%;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid rgb(from var(--foreground) r g b / 0.2);
+  padding: 0.5rem 0;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--foreground);
+  outline: none;
+  transition: border-color 200ms ease;
+  font-family: inherit;
+}
+.ot-line-input::placeholder {
+  color: rgb(from var(--muted-foreground) r g b / 0.45);
+}
+.ot-line-input:focus {
+  border-bottom-color: var(--foreground);
+}
+.ot-line-input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Reduced motion — kill the stagger, pulse, and marquee for users who prefer it. */
 @media (prefers-reduced-motion: reduce) {
   .ot-rise {
     opacity: 1;
@@ -221,6 +270,9 @@
     transform: none;
   }
   .ot-pulse {
+    animation: none;
+  }
+  .ot-marquee-right {
     animation: none;
   }
 }

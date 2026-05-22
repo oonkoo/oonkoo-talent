@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { serialize } from "@/lib/serialize";
 import { slugify } from "@/lib/slug";
+import { deleteUploadthingFilesForDocs } from "@/lib/uploadthing-cleanup";
 
 export async function getCompanies() {
   const companies = await db.company.findMany({
@@ -68,7 +69,25 @@ export async function updateCompany(slug: string, data: {
 }
 
 export async function deleteCompany(slug: string) {
+  // Pre-fetch all employee-document keys before the DB cascade wipes them —
+  // once cascade runs we have no way to discover the UploadThing keys.
+  const company = await db.company.findUnique({
+    where: { slug },
+    select: {
+      employees: {
+        select: {
+          documents: { select: { fileKey: true, fileUrl: true } },
+        },
+      },
+    },
+  });
+  const docs = company?.employees.flatMap((e) => e.documents) ?? [];
+
   await db.company.delete({ where: { slug } });
+
+  // UT cleanup after the DB commits — best-effort, never throws.
+  await deleteUploadthingFilesForDocs(docs);
+
   revalidatePath("/dashboard/companies");
 }
 

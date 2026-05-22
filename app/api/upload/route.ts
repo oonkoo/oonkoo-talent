@@ -44,6 +44,7 @@ export async function POST(request: Request) {
             | "other",
           fileName: res.data.name,
           fileUrl: res.data.ufsUrl,
+          fileKey: res.data.key,
           fileSizeBytes: res.data.size,
         },
       });

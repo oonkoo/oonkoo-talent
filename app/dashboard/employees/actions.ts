@@ -3,6 +3,10 @@
 import { notFound, redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { serialize } from "@/lib/serialize";
+import {
+  deleteUploadthingFiles,
+  extractFileKey,
+} from "@/lib/uploadthing-cleanup";
 
 export async function getEmployees() {
   const employees = await db.employee.findMany({
@@ -120,32 +124,19 @@ export async function createEmployee(data: {
   redirect(`/dashboard/employees/${employee.id}`);
 }
 
-export async function saveEmployeeDocument(data: {
-  employeeId: string;
-  documentType:
-    | "offer_letter"
-    | "terms_conditions"
-    | "bank_info"
-    | "promotion_letter"
-    | "other";
-  fileName: string;
-  fileUrl: string;
-  fileSizeBytes?: number;
-  notes?: string;
-}) {
-  await db.employeeDocument.create({
-    data: {
-      employeeId: data.employeeId,
-      documentType: data.documentType,
-      fileName: data.fileName,
-      fileUrl: data.fileUrl,
-      fileSizeBytes: data.fileSizeBytes ?? null,
-      notes: data.notes || null,
-    },
-  });
-}
-
 export async function deleteEmployeeDocument(id: string) {
+  const doc = await db.employeeDocument.findUnique({
+    where: { id },
+    select: { fileKey: true, fileUrl: true },
+  });
+  if (!doc) return;
+
+  // UT first, DB second. If UT errors transiently the helper swallows and
+  // logs — the DB delete still proceeds (lesser-evil: storage leak beats
+  // a stuck deletion that also leaks the file via user abandonment).
+  const key = extractFileKey(doc);
+  if (key) await deleteUploadthingFiles([key]);
+
   await db.employeeDocument.delete({ where: { id } });
 }
 

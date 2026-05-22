@@ -166,6 +166,7 @@ model EmployeeDocument {
   documentType  DocumentType @map("document_type")
   fileName      String       @map("file_name")
   fileUrl       String       @map("file_url")
+  fileKey       String       @map("file_key") // UploadThing identifier — required for storage cleanup on delete
   fileSizeBytes Int?         @map("file_size_bytes")
   notes         String?
   uploadedAt    DateTime     @default(now()) @map("uploaded_at")

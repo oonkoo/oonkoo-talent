@@ -40,23 +40,10 @@ export default async function OnboardPage() {
     roleBreakdown: lead?.roleBreakdown
       ? (serialize(lead.roleBreakdown) as Record<string, number>)
       : {},
-    employmentType: lead?.employmentType ?? "",
+    employmentType: lead?.employmentType ?? "full_time",
     experienceLevel: lead?.experienceLevel ?? "",
     message: lead?.message ?? "",
   };
 
-  return (
-    <div className="space-y-6">
-      <div className="space-y-1.5">
-        <h1 className="text-2xl font-semibold tracking-tight">
-          Tell us about your team
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          Three quick steps. We&apos;ll review and reach out within 24 hours
-          with a pod proposal.
-        </p>
-      </div>
-      <OnboardForm initial={initial} />
-    </div>
-  );
+  return <OnboardForm initial={initial} />;
 }

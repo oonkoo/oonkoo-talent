@@ -76,14 +76,27 @@ export const columns: ColumnDef<LeadListItem>[] = [
         <ArrowUpDown className="ml-2 size-4" />
       </Button>
     ),
-    cell: ({ row }) => (
-      <div>
-        <span className="font-medium">{row.original.contactName}</span>
-        <p className="text-xs text-muted-foreground">
-          {row.original.companyName ?? "—"}
-        </p>
-      </div>
-    ),
+    cell: ({ row }) => {
+      const isContact = row.original.source === "CONTACT_FORM";
+      const message = row.original.message?.trim();
+      const subtitle =
+        isContact && message
+          ? `“${message}”`
+          : row.original.companyName ?? "—";
+      return (
+        <div className="min-w-0">
+          <span className="font-medium">{row.original.contactName}</span>
+          <p
+            className={`text-xs text-muted-foreground truncate max-w-[40ch] ${
+              isContact && message ? "italic" : ""
+            }`}
+            title={isContact && message ? message : undefined}
+          >
+            {subtitle}
+          </p>
+        </div>
+      );
+    },
   },
   {
     accessorKey: "contactEmail",

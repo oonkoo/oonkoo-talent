@@ -1,8 +1,10 @@
 "use server";
 
 import { notFound } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { serialize } from "@/lib/serialize";
+import { slugify } from "@/lib/slug";
 
 export async function getCompanies() {
   const companies = await db.company.findMany({
@@ -52,12 +54,22 @@ export async function updateCompany(slug: string, data: {
   agreedRateBdt: number;
   agentEnabled: boolean;
 }) {
-  const { slugify } = await import("@/lib/slug");
   const newSlug = slugify(data.name);
   await db.company.update({
     where: { slug },
     data: { ...data, slug: newSlug, billingAddress: data.billingAddress || null },
   });
+  revalidatePath("/dashboard/companies");
+  revalidatePath(`/dashboard/companies/${slug}`);
+  if (newSlug !== slug) {
+    revalidatePath(`/dashboard/companies/${newSlug}`);
+  }
+  return { slug: newSlug };
+}
+
+export async function deleteCompany(slug: string) {
+  await db.company.delete({ where: { slug } });
+  revalidatePath("/dashboard/companies");
 }
 
 export async function getAgent(agentId: string) {

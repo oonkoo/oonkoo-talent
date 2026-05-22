@@ -6,6 +6,35 @@ import { ArrowUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { EmployeeWithDetails } from "./actions";
 
+function formatTenure(startISO: string): string {
+  const start = new Date(startISO);
+  const now = new Date();
+
+  let years = now.getUTCFullYear() - start.getUTCFullYear();
+  let months = now.getUTCMonth() - start.getUTCMonth();
+  let days = now.getUTCDate() - start.getUTCDate();
+
+  if (days < 0) {
+    months -= 1;
+    const prevMonthLastDay = new Date(
+      Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 0),
+    ).getUTCDate();
+    days += prevMonthLastDay;
+  }
+  if (months < 0) {
+    years -= 1;
+    months += 12;
+  }
+
+  if (years < 0) return "—";
+
+  const parts: string[] = [];
+  if (years > 0) parts.push(`${years}y`);
+  if (months > 0) parts.push(`${months}m`);
+  if (years === 0) parts.push(`${days}d`);
+  return parts.join(" ");
+}
+
 export const columns: ColumnDef<EmployeeWithDetails>[] = [
   {
     accessorKey: "fullName",
@@ -95,6 +124,29 @@ export const columns: ColumnDef<EmployeeWithDetails>[] = [
           day: "numeric",
           timeZone: "UTC",
         })}
+      </span>
+    ),
+  },
+  {
+    id: "tenure",
+    header: ({ column }) => (
+      <Button
+        variant="ghost"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        className="-ml-4"
+      >
+        Tenure
+        <ArrowUpDown className="ml-2 size-4" />
+      </Button>
+    ),
+    accessorFn: (row) => new Date(row.startDate as unknown as string).getTime(),
+    sortingFn: (a, b, columnId) => {
+      // Earlier start date = longer tenure. Sort ascending shows shortest tenure first.
+      return (b.getValue(columnId) as number) - (a.getValue(columnId) as number);
+    },
+    cell: ({ row }) => (
+      <span className="tabular-nums text-sm text-muted-foreground">
+        {formatTenure(row.original.startDate as unknown as string)}
       </span>
     ),
   },

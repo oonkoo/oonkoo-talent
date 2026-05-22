@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Loader2, AlertTriangle } from "lucide-react";
+import { Loader2, AlertTriangle, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,44 +17,90 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { updateCompany, type CompanyFull } from "../../actions";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { updateCompany, deleteCompany, type CompanyFull } from "../../actions";
 
 const currencies = ["CAD", "USD", "GBP", "EUR", "BDT"];
 
 export function EditCompanyForm({ company }: { company: CompanyFull }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const [isDeleting, startDeleteTransition] = useTransition();
   const originalRate = Number(company.agreedRateBdt);
 
-  const [form, setForm] = useState({
-    name: company.name,
-    country: company.country,
-    currency: company.currency,
-    contactName: company.contactName,
-    contactEmail: company.contactEmail,
-    billingAddress: company.billingAddress ?? "",
-    agreedRateBdt: originalRate,
-    agentEnabled: company.agentEnabled,
-  });
+  const initial = useMemo(
+    () => ({
+      name: company.name,
+      country: company.country,
+      currency: company.currency,
+      contactName: company.contactName,
+      contactEmail: company.contactEmail,
+      billingAddress: company.billingAddress ?? "",
+      agreedRateBdt: originalRate,
+      agentEnabled: company.agentEnabled,
+    }),
+    [company, originalRate],
+  );
+
+  const [form, setForm] = useState(initial);
+  const [deleteConfirm, setDeleteConfirm] = useState("");
 
   const rateChanged = form.agreedRateBdt !== originalRate;
+  const isDirty =
+    form.name !== initial.name ||
+    form.country !== initial.country ||
+    form.currency !== initial.currency ||
+    form.contactName !== initial.contactName ||
+    form.contactEmail !== initial.contactEmail ||
+    form.billingAddress !== initial.billingAddress ||
+    form.agreedRateBdt !== initial.agreedRateBdt ||
+    form.agentEnabled !== initial.agentEnabled;
+
+  const activeEmployeeCount = company._count.employees;
+  const activeAgentCount = company.agents.length;
+  const canConfirmDelete = deleteConfirm.trim() === company.name;
 
   function update(field: string, value: string | number | boolean) {
     setForm((prev) => ({ ...prev, [field]: value }));
   }
 
   function handleSubmit() {
+    if (!isDirty) return;
     startTransition(async () => {
       try {
-        await updateCompany(company.slug, {
+        const { slug } = await updateCompany(company.slug, {
           ...form,
           billingAddress: form.billingAddress || undefined,
         });
         toast.success(`${form.name} updated`);
-        router.push(`/dashboard/companies/${form.name.toLowerCase().trim().replace(/[^\w\s-]/g, "").replace(/[\s_]+/g, "-").replace(/-+/g, "-")}`);
+        router.push(`/dashboard/companies/${slug}`);
         router.refresh();
       } catch {
         toast.error("Failed to update company");
+      }
+    });
+  }
+
+  function handleDelete() {
+    if (!canConfirmDelete) return;
+    startDeleteTransition(async () => {
+      try {
+        await deleteCompany(company.slug);
+        toast.success(`${company.name} deleted`);
+        router.push("/dashboard/companies");
+        router.refresh();
+      } catch {
+        toast.error("Failed to delete company");
       }
     });
   }
@@ -133,6 +179,79 @@ export function EditCompanyForm({ company }: { company: CompanyFull }) {
         </CardContent>
       </Card>
 
+      <Card className="border-destructive/30">
+        <CardHeader>
+          <CardTitle className="text-destructive">Danger Zone</CardTitle>
+        </CardHeader>
+        <CardContent className="flex items-center justify-between gap-4">
+          <div className="space-y-1">
+            <p className="text-sm font-medium">Delete this company</p>
+            <p className="text-xs text-muted-foreground">
+              Permanently removes the company and cascades to its agents, rate configs, employees, and invoice batches. This cannot be undone.
+            </p>
+          </div>
+          <AlertDialog
+            onOpenChange={(open) => {
+              if (!open) setDeleteConfirm("");
+            }}
+          >
+            <AlertDialogTrigger asChild>
+              <Button variant="destructive" disabled={isDeleting}>
+                <Trash2 className="mr-2 size-4" />
+                Delete
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Delete {company.name}?</AlertDialogTitle>
+                <AlertDialogDescription asChild>
+                  <div className="space-y-3">
+                    <p>
+                      This will permanently remove the company and everything attached to it. Cascade includes:
+                    </p>
+                    <ul className="list-disc pl-5 text-sm">
+                      <li>
+                        <span className="tabular-nums font-medium">{activeAgentCount}</span> active agent{activeAgentCount === 1 ? "" : "s"}
+                      </li>
+                      <li>
+                        <span className="tabular-nums font-medium">{activeEmployeeCount}</span> active employee{activeEmployeeCount === 1 ? "" : "s"} (with their documents)
+                      </li>
+                      <li>All rate configs and invoice batches for this company</li>
+                    </ul>
+                    <p>
+                      Type <span className="font-mono font-medium">{company.name}</span> to confirm.
+                    </p>
+                    <Input
+                      autoFocus
+                      value={deleteConfirm}
+                      onChange={(e) => setDeleteConfirm(e.target.value)}
+                      placeholder={company.name}
+                    />
+                  </div>
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleDelete();
+                  }}
+                  disabled={!canConfirmDelete || isDeleting}
+                  className="bg-destructive text-white hover:bg-destructive/90"
+                >
+                  {isDeleting ? (
+                    <><Loader2 className="mr-2 size-4 animate-spin" />Deleting...</>
+                  ) : (
+                    "Delete company"
+                  )}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </CardContent>
+      </Card>
+
       <div className="flex items-center justify-between">
         <Button
           variant="outline"
@@ -140,7 +259,7 @@ export function EditCompanyForm({ company }: { company: CompanyFull }) {
         >
           Cancel
         </Button>
-        <Button onClick={handleSubmit} disabled={isPending}>
+        <Button onClick={handleSubmit} disabled={isPending || !isDirty}>
           {isPending ? (
             <><Loader2 className="mr-2 size-4 animate-spin" />Saving...</>
           ) : (

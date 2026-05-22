@@ -20,6 +20,7 @@ enum DocumentType {
   offer_letter
   terms_conditions
   bank_info
+  promotion_letter
   other
 }
 
@@ -267,9 +268,18 @@ model Lead {
 
   // Onboarding form data.
   teamSize        Int?    @map("team_size")
-  roleBreakdown   Json?   @map("role_breakdown") // { "fullstack": 3, "bi": 1, "design": 1 }
+  roleBreakdown   Json?   @map("role_breakdown") // { dev: 3, designer: 1, ... } — count map (legacy)
+  podSpec         Json?   @map("pod_spec")       // Array<{ id, name, count, years, tier, hourlyRateCad }> — full per-role spec from the calculator
   employmentType  String? @map("employment_type") // "full_time" | "part_time" | "contract"
   experienceLevel String? @map("experience_level") // "junior" | "mid" | "senior" | "mixed"
+
+  // Pod-fit calculator snapshot — what the prospect was looking at when they submitted.
+  // quoteMonthlyCad / quoteTotalCad are null when employmentType === "contract" (project-scoped).
+  contractLength  String?  @map("contract_length")          // "6mo" | "1yr" | "3yr"
+  contractMonths  Int?     @map("contract_months")          // 6 | 12 | 36
+  quoteHourlyCad  Decimal? @map("quote_hourly_cad")  @db.Decimal(10, 2)
+  quoteMonthlyCad Decimal? @map("quote_monthly_cad") @db.Decimal(12, 2)
+  quoteTotalCad   Decimal? @map("quote_total_cad")   @db.Decimal(14, 2)
 
   // Free-text — both paths.
   message String?

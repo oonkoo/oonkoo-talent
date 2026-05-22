@@ -10,34 +10,53 @@ export default function OnboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen flex flex-col bg-muted/20">
-      <header className="border-b border-border/50 bg-background">
-        <div className="mx-auto flex h-14 max-w-3xl items-center justify-between px-4">
-          <Link href="/" className="flex items-center gap-2">
+    <div
+      data-theme="ot-landing"
+      className="relative min-h-screen flex flex-col bg-background text-foreground overflow-x-clip"
+    >
+      <header className="relative z-10">
+        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6 lg:px-10">
+          <Link href="/" className="group flex items-center gap-2.5">
             <Image
               src="/oonkoo_talent.svg"
               alt="OonkoO Talent"
               width={28}
               height={28}
               priority
+              className="transition-transform duration-300 group-hover:rotate-3"
             />
-            <span className="text-sm font-medium tracking-tight">
+            <span className="font-mono text-[10.5px] uppercase tracking-[0.22em] text-muted-foreground/80 group-hover:text-foreground transition-colors">
               OonkoO Talent
             </span>
           </Link>
           <Link
             href="/api/auth/logout"
-            className="text-xs text-muted-foreground hover:text-foreground"
+            className="font-mono text-[10.5px] uppercase tracking-[0.22em] text-muted-foreground/60 hover:text-foreground transition-colors"
           >
             Sign out
           </Link>
         </div>
+        <div aria-hidden className="mx-auto max-w-6xl px-6 lg:px-10">
+          <div className="h-px w-full bg-foreground/10" />
+        </div>
       </header>
+
       <main className="flex-1 flex flex-col">
-        <div className="mx-auto w-full max-w-2xl px-4 py-10 md:py-16">
+        <div className="mx-auto w-full max-w-6xl px-6 lg:px-10 py-14 md:py-20">
           {children}
         </div>
       </main>
+
+      <footer className="relative z-10 border-t border-foreground/10">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 lg:px-10 py-5">
+          <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground/60">
+            Dhaka <span className="text-muted-foreground/40">↔</span> North America
+          </p>
+          <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground/60">
+            Reply within 24 hr
+          </p>
+        </div>
+      </footer>
     </div>
   );
 }

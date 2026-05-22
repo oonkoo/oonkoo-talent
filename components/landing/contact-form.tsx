@@ -2,6 +2,7 @@
 
 import { useState, useTransition, type ChangeEvent, type FormEvent } from "react";
 import { ArrowUpRight, Check, Loader2 } from "lucide-react";
+import { createLeadFromContact } from "@/app/actions";
 
 type FormState = {
   name: string;
@@ -48,10 +49,17 @@ export function ContactForm() {
     }
     setError(null);
     startTransition(async () => {
-      // TODO: wire to createLeadFromContact server action (Phase 4 §11 of LANDING_PAGE_FLOW.md).
-      // For now, simulate a network delay so the UI rhythm is correct.
-      await new Promise((resolve) => setTimeout(resolve, 700));
-      setSubmitted(true);
+      try {
+        await createLeadFromContact({
+          name: data.name.trim(),
+          email: data.email.trim(),
+          company: data.company.trim() || undefined,
+          message: data.message.trim(),
+        });
+        setSubmitted(true);
+      } catch {
+        setError("Something went wrong on our end. Try again, or email hello@oonkoo.com directly.");
+      }
     });
   }
 

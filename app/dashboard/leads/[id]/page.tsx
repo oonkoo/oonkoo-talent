@@ -10,6 +10,10 @@ import {
   GraduationCap,
   Users,
   ExternalLink,
+  Quote,
+  Reply,
+  Calculator,
+  Clock,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -19,6 +23,7 @@ import { getLead } from "../actions";
 import {
   AddNoteForm,
   LeadConvertDialog,
+  LeadDeleteDialog,
   LeadStatusSelect,
 } from "./lead-actions";
 
@@ -34,6 +39,63 @@ const EXPERIENCE_LABEL: Record<string, string> = {
   senior: "Senior",
   mixed: "Mixed",
 };
+
+const CONTRACT_LENGTH_LABEL: Record<string, string> = {
+  "6mo": "6 months",
+  "1yr": "1 year",
+  "3yr": "3 years",
+};
+
+const TIER_LABEL: Record<string, string> = {
+  junior: "Junior",
+  mid: "Mid",
+  senior: "Senior",
+};
+
+type PodSpecRole = {
+  id: string;
+  name: string;
+  count: number;
+  years: number;
+  tier: string;
+  hourlyRateCad: number;
+};
+
+function parsePodSpec(value: unknown): PodSpecRole[] | null {
+  if (!Array.isArray(value)) return null;
+  const rows: PodSpecRole[] = [];
+  for (const item of value) {
+    if (!item || typeof item !== "object") continue;
+    const r = item as Record<string, unknown>;
+    if (
+      typeof r.id !== "string" ||
+      typeof r.name !== "string" ||
+      typeof r.count !== "number" ||
+      typeof r.years !== "number" ||
+      typeof r.tier !== "string" ||
+      typeof r.hourlyRateCad !== "number"
+    ) {
+      continue;
+    }
+    rows.push({
+      id: r.id,
+      name: r.name,
+      count: r.count,
+      years: r.years,
+      tier: r.tier,
+      hourlyRateCad: r.hourlyRateCad,
+    });
+  }
+  return rows.length > 0 ? rows : null;
+}
+
+function formatCurrencyCad(n: number): string {
+  return n.toLocaleString("en-CA", {
+    style: "currency",
+    currency: "CAD",
+    maximumFractionDigits: 0,
+  });
+}
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleString(undefined, {
@@ -62,6 +124,17 @@ export default async function LeadDetailPage({
   const isConverted = !!lead.convertedCompanyId && !!lead.convertedCompany;
   const isSignup = lead.source === "SIGNUP";
   const roleSummary = formatRoleBreakdown(lead.roleBreakdown);
+  const podSpec = parsePodSpec(lead.podSpec);
+  const isProjectScoped = lead.employmentType === "contract";
+  const quoteHourly = lead.quoteHourlyCad ? Number(lead.quoteHourlyCad) : null;
+  const quoteMonthly = lead.quoteMonthlyCad ? Number(lead.quoteMonthlyCad) : null;
+  const quoteTotal = lead.quoteTotalCad ? Number(lead.quoteTotalCad) : null;
+  const hasQuote =
+    quoteHourly !== null ||
+    quoteMonthly !== null ||
+    quoteTotal !== null ||
+    podSpec !== null ||
+    !!lead.contractLength;
 
   return (
     <div className="space-y-6">
@@ -96,6 +169,20 @@ export default async function LeadDetailPage({
         </div>
 
         <div className="flex items-center gap-2">
+          {!isSignup && (
+            <Button asChild variant="outline" size="sm">
+              <a
+                href={`mailto:${lead.contactEmail}?subject=${encodeURIComponent(
+                  `Re: your note to OonkoO Talent`,
+                )}&body=${encodeURIComponent(
+                  `Hi ${lead.contactName.split(" ")[0]},\n\n`,
+                )}`}
+              >
+                <Reply className="mr-1.5 size-3.5" />
+                Reply by email
+              </a>
+            </Button>
+          )}
           <LeadStatusSelect
             leadId={lead.id}
             current={lead.status}
@@ -106,6 +193,22 @@ export default async function LeadDetailPage({
           )}
         </div>
       </div>
+
+      {!isSignup && lead.message && (
+        <Card className="border-blue-500/30 bg-blue-500/5">
+          <CardContent className="flex items-start gap-3 py-4">
+            <Quote className="size-4 text-blue-700 mt-1 shrink-0" />
+            <div className="space-y-1 min-w-0">
+              <p className="text-xs font-medium uppercase tracking-wide text-blue-700/80">
+                Their message
+              </p>
+              <p className="text-sm whitespace-pre-wrap break-words leading-relaxed">
+                {lead.message}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {isConverted && lead.convertedCompany && (
         <Card className="border-emerald-500/30 bg-emerald-500/5">
@@ -185,11 +288,101 @@ export default async function LeadDetailPage({
               </>
             )}
 
-            {lead.message && (
+            {hasQuote && (
+              <>
+                <Separator />
+                <div className="space-y-4">
+                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    Pod spec & quote
+                  </p>
+
+                  {podSpec && (
+                    <div className="rounded-md border border-border/50 overflow-hidden">
+                      <table className="w-full text-sm">
+                        <thead className="bg-muted/40">
+                          <tr className="text-left text-xs text-muted-foreground">
+                            <th className="px-3 py-2 font-medium">Role</th>
+                            <th className="px-3 py-2 font-medium text-right">Count</th>
+                            <th className="px-3 py-2 font-medium text-right">Years</th>
+                            <th className="px-3 py-2 font-medium">Tier</th>
+                            <th className="px-3 py-2 font-medium text-right">
+                              Rate / person
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {podSpec.map((row) => (
+                            <tr key={row.id} className="border-t border-border/40">
+                              <td className="px-3 py-2 font-medium">{row.name}</td>
+                              <td className="px-3 py-2 text-right tabular-nums">
+                                {row.count}
+                              </td>
+                              <td className="px-3 py-2 text-right tabular-nums">
+                                {row.years}y
+                              </td>
+                              <td className="px-3 py-2">
+                                <Badge variant="outline" className="text-xs">
+                                  {TIER_LABEL[row.tier] ?? row.tier}
+                                </Badge>
+                              </td>
+                              <td className="px-3 py-2 text-right tabular-nums">
+                                C${row.hourlyRateCad.toFixed(2)}/hr
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {lead.contractLength && (
+                      <Field icon={Clock} label="Contract length">
+                        {CONTRACT_LENGTH_LABEL[lead.contractLength] ??
+                          lead.contractLength}
+                      </Field>
+                    )}
+                    {quoteHourly !== null && (
+                      <Field icon={Calculator} label="All-in hourly">
+                        <span className="tabular-nums">
+                          C${quoteHourly.toFixed(2)}/hr
+                        </span>
+                      </Field>
+                    )}
+                    {isProjectScoped ? (
+                      <Field icon={Calculator} label="Engagement">
+                        Project-scoped
+                      </Field>
+                    ) : (
+                      <>
+                        {quoteMonthly !== null && (
+                          <Field icon={Calculator} label="Indicative monthly">
+                            <span className="tabular-nums">
+                              {formatCurrencyCad(quoteMonthly)}
+                            </span>
+                          </Field>
+                        )}
+                        {quoteTotal !== null && (
+                          <Field icon={Calculator} label="Indicative total">
+                            <span className="tabular-nums font-medium">
+                              {formatCurrencyCad(quoteTotal)}
+                            </span>
+                          </Field>
+                        )}
+                      </>
+                    )}
+                  </div>
+                </div>
+              </>
+            )}
+
+            {lead.message && isSignup && (
               <>
                 <Separator />
                 <Section title="Message">
-                  <p className="text-sm whitespace-pre-wrap">{lead.message}</p>
+                  <p className="text-sm whitespace-pre-wrap break-words">
+                    {lead.message}
+                  </p>
                 </Section>
               </>
             )}
@@ -224,6 +417,28 @@ export default async function LeadDetailPage({
           </CardContent>
         </Card>
       </div>
+
+      <Card className="border-destructive/30">
+        <CardHeader>
+          <CardTitle className="text-destructive">Danger Zone</CardTitle>
+        </CardHeader>
+        <CardContent className="flex items-center justify-between gap-4">
+          <div className="space-y-1">
+            <p className="text-sm font-medium">Delete this lead</p>
+            <p className="text-xs text-muted-foreground">
+              Permanently removes the lead record and all of its notes.
+              {isConverted && " The linked company will remain unaffected."}
+            </p>
+          </div>
+          <LeadDeleteDialog
+            leadId={lead.id}
+            contactName={lead.contactName}
+            noteCount={lead.notes.length}
+            isConverted={isConverted}
+            convertedCompanyName={lead.convertedCompany?.name}
+          />
+        </CardContent>
+      </Card>
     </div>
   );
 }

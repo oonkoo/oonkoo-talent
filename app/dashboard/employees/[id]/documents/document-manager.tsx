@@ -23,10 +23,16 @@ const typeLabels: Record<string, string> = {
   offer_letter: "Offer Letter",
   terms_conditions: "Terms & Conditions",
   bank_info: "Bank Info",
+  promotion_letter: "Promotion Letter",
   other: "Other",
 };
 
-type DocumentType = "offer_letter" | "terms_conditions" | "bank_info" | "other";
+type DocumentType =
+  | "offer_letter"
+  | "terms_conditions"
+  | "bank_info"
+  | "promotion_letter"
+  | "other";
 
 type Doc = {
   id: string;

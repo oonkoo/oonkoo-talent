@@ -122,7 +122,12 @@ export async function createEmployee(data: {
 
 export async function saveEmployeeDocument(data: {
   employeeId: string;
-  documentType: "offer_letter" | "terms_conditions" | "bank_info" | "other";
+  documentType:
+    | "offer_letter"
+    | "terms_conditions"
+    | "bank_info"
+    | "promotion_letter"
+    | "other";
   fileName: string;
   fileUrl: string;
   fileSizeBytes?: number;

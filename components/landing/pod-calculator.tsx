@@ -30,10 +30,35 @@ const CONTRACTS = [
   { id: "3yr" as const, label: "3 years", months: 36 },
 ];
 
-const HOURS_PER_MONTH = 162.5;
+const FULL_TIME_HOURS_PER_MONTH = 162.5;
+const PART_TIME_HOURS_PER_MONTH = 81.25;
 const MAX_COUNT = 20;
 const MIN_YEARS = 1;
 const MAX_YEARS = 10;
+
+type EmploymentType = "full_time" | "part_time" | "contract";
+type ExperienceLevel = "junior" | "mid" | "senior" | "mixed";
+
+const EMPLOYMENT: { value: EmploymentType; label: string; sub: string }[] = [
+  { value: "full_time", label: "Full-time", sub: "Embedded · 40 hr / wk" },
+  { value: "part_time", label: "Part-time", sub: "20 hr / wk or hourly" },
+  { value: "contract", label: "Contract", sub: "Project-scoped" },
+];
+
+const EXPERIENCE: { value: ExperienceLevel; label: string }[] = [
+  { value: "junior", label: "Junior" },
+  { value: "mid", label: "Mid" },
+  { value: "senior", label: "Senior" },
+  { value: "mixed", label: "Mixed" },
+];
+
+// null = no monthly cadence (contract = project-scoped). Full-time is the
+// default preview so the panel reads sensibly on first paint.
+function monthlyHoursFor(emp: EmploymentType): number | null {
+  if (emp === "part_time") return PART_TIME_HOURS_PER_MONTH;
+  if (emp === "contract") return null;
+  return FULL_TIME_HOURS_PER_MONTH;
+}
 
 // Year-by-year rate ladder for Developers (baseline). Other roles offset.
 //   1 yr → $4   ┐
@@ -87,9 +112,17 @@ const INITIAL: State = {
 export function PodCalculator() {
   const [state, setState] = useState<State>(INITIAL);
   const [contractId, setContractId] = useState<ContractId>("1yr");
+  const [employmentType, setEmploymentType] =
+    useState<EmploymentType>("full_time");
+  const [experienceOverride, setExperienceOverride] =
+    useState<ExperienceLevel | null>(null);
 
   const contract =
     CONTRACTS.find((c) => c.id === contractId) ?? CONTRACTS[1];
+
+  const isContract = employmentType === "contract";
+  const isPartTime = employmentType === "part_time";
+  const weekLabel = isPartTime ? "20 hr/wk" : "40 hr/wk";
 
   const totals = useMemo(() => {
     let teamSize = 0;
@@ -100,15 +133,33 @@ export function PodCalculator() {
       teamSize += s.count;
       hourlyRate += s.count * r;
     }
-    const monthlyCost = hourlyRate * HOURS_PER_MONTH;
-    const totalCost = monthlyCost * contract.months;
+    const monthlyHours = monthlyHoursFor(employmentType);
+    const monthlyCost =
+      monthlyHours !== null ? Math.round(hourlyRate * monthlyHours) : null;
+    const totalCost =
+      monthlyCost !== null ? monthlyCost * contract.months : null;
     return {
       teamSize,
       hourlyRate: Math.round(hourlyRate),
-      monthlyCost: Math.round(monthlyCost),
-      totalCost: Math.round(totalCost),
+      monthlyCost,
+      totalCost,
+      monthlyHours,
     };
-  }, [state, contract.months]);
+  }, [state, contract.months, employmentType]);
+
+  const derivedExperience: ExperienceLevel | null = useMemo(() => {
+    const tiers = new Set<string>();
+    for (const role of ROLES) {
+      const s = state[role.id];
+      if (s.count <= 0) continue;
+      tiers.add(tierForYears(s.years).toLowerCase());
+    }
+    if (tiers.size === 0) return null;
+    if (tiers.size > 1) return "mixed";
+    return [...tiers][0] as ExperienceLevel;
+  }, [state]);
+
+  const effectiveExperience = experienceOverride ?? derivedExperience;
 
   function adjustYears(roleId: RoleId, delta: number) {
     setState((prev) => ({
@@ -186,36 +237,120 @@ export function PodCalculator() {
           );
         })}
 
-        {/* Contract length toggle */}
-        <div className="mt-10 flex flex-wrap items-baseline gap-x-8 gap-y-3">
+        {/* Employment shape */}
+        <div className="mt-10 space-y-3">
           <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground/70">
-            Contract length
+            Employment shape
           </p>
-          <div className="flex items-baseline gap-7">
-            {CONTRACTS.map((c) => {
-              const active = contractId === c.id;
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+            {EMPLOYMENT.map((opt) => {
+              const active = employmentType === opt.value;
               return (
                 <button
-                  key={c.id}
+                  key={opt.value}
                   type="button"
-                  onClick={() => setContractId(c.id)}
+                  onClick={() => setEmploymentType(opt.value)}
                   className={cn(
-                    "relative pb-2 font-mono text-[11px] uppercase tracking-[0.22em] transition-colors duration-200",
+                    "text-left rounded-md border px-4 py-3 transition-all duration-200",
                     active
-                      ? "text-foreground"
-                      : "text-muted-foreground/70 hover:text-foreground",
+                      ? "border-foreground bg-foreground text-background"
+                      : "border-foreground/15 hover:border-foreground/40 bg-transparent text-foreground",
                   )}
                 >
-                  {c.label}
-                  {active && (
-                    <span
-                      aria-hidden
-                      className="absolute -bottom-px inset-x-0 h-[2px] bg-accent"
-                    />
-                  )}
+                  <p className="font-display text-[15px] leading-tight tracking-[-0.01em]">
+                    {opt.label}
+                  </p>
+                  <p
+                    className={cn(
+                      "mt-1 font-mono text-[9.5px] uppercase tracking-[0.18em]",
+                      active
+                        ? "text-background/70"
+                        : "text-muted-foreground/70",
+                    )}
+                  >
+                    {opt.sub}
+                  </p>
                 </button>
               );
             })}
+          </div>
+        </div>
+
+        {/* Contract length toggle — hidden for project-scoped engagements */}
+        {!isContract && (
+          <div className="mt-10 flex flex-wrap items-baseline gap-x-8 gap-y-3">
+            <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground/70">
+              Contract length
+            </p>
+            <div className="flex items-baseline gap-7">
+              {CONTRACTS.map((c) => {
+                const active = contractId === c.id;
+                return (
+                  <button
+                    key={c.id}
+                    type="button"
+                    onClick={() => setContractId(c.id)}
+                    className={cn(
+                      "relative pb-2 font-mono text-[11px] uppercase tracking-[0.22em] transition-colors duration-200",
+                      active
+                        ? "text-foreground"
+                        : "text-muted-foreground/70 hover:text-foreground",
+                    )}
+                  >
+                    {c.label}
+                    {active && (
+                      <span
+                        aria-hidden
+                        className="absolute -bottom-px inset-x-0 h-[2px] bg-accent"
+                      />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Experience level — auto-derived from per-role years, overridable */}
+        <div className="mt-10 space-y-3">
+          <div className="flex items-baseline justify-between gap-3">
+            <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground/70">
+              Experience level
+            </p>
+            {derivedExperience && experienceOverride === null && (
+              <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground/60">
+                auto from your picks
+              </p>
+            )}
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {EXPERIENCE.map((opt) => {
+              const active = effectiveExperience === opt.value;
+              return (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setExperienceOverride(opt.value)}
+                  className={cn(
+                    "rounded-full border px-4 py-1.5 font-mono text-[10px] uppercase tracking-[0.22em] transition-all duration-200",
+                    active
+                      ? "border-foreground bg-foreground text-background"
+                      : "border-foreground/20 hover:border-foreground/50 text-foreground/80",
+                  )}
+                >
+                  {opt.label}
+                </button>
+              );
+            })}
+            {experienceOverride !== null && (
+              <button
+                type="button"
+                onClick={() => setExperienceOverride(null)}
+                className="ml-1 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground/70 hover:text-foreground transition-colors"
+              >
+                reset
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -234,27 +369,71 @@ export function PodCalculator() {
             prefix="$"
             suffix="/hr"
           />
-          <Stat
-            label="Monthly cost"
-            value={totals.monthlyCost}
-            prefix="$"
-            withSeparator
-          />
-          <Stat
-            label={`Total over ${contract.label}`}
-            value={totals.totalCost}
-            prefix="$"
-            withSeparator
-            highlight
-          />
+
+          {isContract ? (
+            <div className="rounded-md border border-foreground/15 bg-foreground/[0.03] px-4 py-5">
+              <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground/70">
+                Engagement
+              </p>
+              <p className="mt-2 font-display text-[clamp(1.5rem,2.8vw,2.1rem)] leading-none tracking-[-0.03em] text-foreground">
+                Project-scoped
+              </p>
+              <p className="mt-3 text-[13px] leading-[1.55] text-muted-foreground">
+                Total depends on scope and duration. We&rsquo;ll lock the
+                number on the pod-fit call.
+              </p>
+            </div>
+          ) : (
+            <>
+              <Stat
+                label={`Monthly cost · ${weekLabel}`}
+                value={totals.monthlyCost ?? 0}
+                prefix="$"
+                withSeparator
+              />
+              <Stat
+                label={`Total over ${contract.label}`}
+                value={totals.totalCost ?? 0}
+                prefix="$"
+                withSeparator
+                highlight
+              />
+            </>
+          )}
+
+          {effectiveExperience && (
+            <div>
+              <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground/70">
+                Experience read
+              </p>
+              <p className="mt-2 font-display text-[clamp(1.4rem,2.6vw,1.9rem)] leading-none tracking-[-0.03em] text-foreground capitalize">
+                {effectiveExperience === "mixed"
+                  ? "Mixed seniorities"
+                  : effectiveExperience}
+              </p>
+            </div>
+          )}
         </div>
 
         <p className="mt-9 max-w-[40ch] text-[13px] leading-[1.55] text-muted-foreground/70">
-          Year-by-year rate ladder at {HOURS_PER_MONTH} billable hours/month.{" "}
-          <span className="text-foreground">
-            Each 8-hour day, 7 are billed; the 1-hour lunch is on us.
-          </span>{" "}
-          Final scope and exact rate confirmed on the pod-fit call.
+          {isContract ? (
+            <>
+              Rates priced per hour.{" "}
+              <span className="text-foreground">
+                We&rsquo;ll scope hours and milestones with you before kick-off.
+              </span>{" "}
+              Final rate confirmed on the pod-fit call.
+            </>
+          ) : (
+            <>
+              Year-by-year rate ladder at {totals.monthlyHours} billable hours/month ·{" "}
+              {weekLabel}.{" "}
+              <span className="text-foreground">
+                Each 8-hour day, 7 are billed; the 1-hour lunch is on us.
+              </span>{" "}
+              Final scope and exact rate confirmed on the pod-fit call.
+            </>
+          )}
         </p>
       </div>
     </div>

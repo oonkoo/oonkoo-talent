@@ -36,7 +36,12 @@ export async function POST(request: Request) {
       const doc = await db.employeeDocument.create({
         data: {
           employeeId,
-          documentType: documentType as "offer_letter" | "terms_conditions" | "bank_info" | "other",
+          documentType: documentType as
+            | "offer_letter"
+            | "terms_conditions"
+            | "bank_info"
+            | "promotion_letter"
+            | "other",
           fileName: res.data.name,
           fileUrl: res.data.ufsUrl,
           fileSizeBytes: res.data.size,

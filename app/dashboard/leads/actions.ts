@@ -44,6 +44,12 @@ export async function updateLeadStatus(id: string, status: LeadStatus) {
   revalidatePath("/dashboard/leads");
 }
 
+export async function deleteLead(id: string) {
+  await requireOwner();
+  await db.lead.delete({ where: { id } });
+  revalidatePath("/dashboard/leads");
+}
+
 export async function addLeadNote(id: string, body: string) {
   await requireOwner();
   const trimmed = body.trim();

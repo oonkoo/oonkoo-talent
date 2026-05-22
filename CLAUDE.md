@@ -35,6 +35,7 @@ Run a single test by name: `npx vitest run -t "FX advantage"`.
 - **@json-render/react-pdf** for PDF invoices; **jspdf** + **jspdf-autotable** also present
 - **UploadThing** for employee document uploads
 - **Vitest** for unit tests (currently scoped to pure utilities)
+- **Three.js / @react-three/fiber / drei**, **GSAP**, and **motion** are landing-page only (`app/page.tsx` + `components/landing/*`). The dashboard has no 3D/animation dependencies — don't reach for these when working inside `app/dashboard/`.
 
 Path alias: `@/*` → project root (`tsconfig.json`, `components.json`).
 
@@ -42,10 +43,10 @@ Path alias: `@/*` → project root (`tsconfig.json`, `components.json`).
 
 This app has exactly one allowed user, configured via the `OWNER_EMAIL` env var and enforced in `lib/auth.ts`. Auth is layered:
 
-1. **Edge** — `proxy.ts` at the project root (Next.js 16 renamed `middleware.ts` → `proxy.ts`). It checks for any Kinde session cookie and redirects unauthenticated requests to `/api/auth/login`. The matcher excludes `api/auth`, `_next/*`, and static files.
+1. **Edge** — `proxy.ts` at the project root (Next.js 16 renamed `middleware.ts` → `proxy.ts`). It checks for any Kinde session cookie and redirects unauthenticated requests to `/api/auth/login`. The matcher excludes `api/auth`, `_next/*`, and static files. `proxy.ts` also defines a `PUBLIC_PATHS` set for routes that should bypass the session check entirely — currently `/` (the marketing landing page). Add a pathname there to make a new route public; do not call `requireOwner()` on those pages.
 2. **Server** — `requireOwner()` from `lib/auth.ts` is awaited in `app/dashboard/layout.tsx` and any server action that needs protection. It rejects authenticated-but-wrong-email users by logging them out.
 
-If you add a new top-level route group outside `dashboard/`, you still get edge protection from `proxy.ts`, but you must call `requireOwner()` yourself for the email check.
+If you add a new owner-only top-level route group outside `dashboard/`, you still get edge protection from `proxy.ts`, but you must call `requireOwner()` yourself for the email check.
 
 ### Prisma + serialization
 
@@ -93,6 +94,8 @@ The Owner Report is a **server-rendered HTML view** under `app/dashboard/invoice
 - `app/dashboard/layout.tsx` sets up `SidebarProvider` (with cookie-persisted `sidebar_state`), `BreadcrumbProvider`, and `requireOwner()`. All dashboard pages assume these wrappers.
 - `lib/nav.ts` is the source of truth for sidebar entries and `isNavActive()` matching.
 - `components/breadcrumb-context.tsx` lets pages set the header breadcrumbs from a server component via context, instead of computing them from the pathname.
+- `app/page.tsx` is the public marketing landing page composed from `components/landing/*` (nav, hero, pricing, how-it-works, vetting, pods, final CTA) — kept fully separate from the dashboard.
+- `app/onboard/` is a server-action-driven onboarding flow (`page.tsx`, `actions.ts`, `onboard-form.tsx`, `thank-you/`) with its own `layout.tsx`. Still gated by the proxy today — add it to `PUBLIC_PATHS` if it ever needs to be reachable without a session.
 
 ### Fonts
 
@@ -101,3 +104,5 @@ Three fonts loaded in the root layout: **Figtree** (`--font-sans`, primary), **G
 ### Architecture doc
 
 Before working on invoice or revenue features, read `documents/oonkoo_talent_architecture_final.md` §3-7 (Exchange Rate Model, Pay Rate Model, Revenue Calculator interfaces, Invoice document visibility rules). The doc is the spec — the code mirrors it.
+
+Other planning material in `documents/` (only relevant when the task touches the corresponding feature): `AGENT_DASHBOARD_PLAN.md`, `LANDING_PAGE_FLOW.md`, `LANDING_PAGE_STRATEGY.md`, `UX_RESEARCH_REPORT.md`, `PROJECT_TRACKER.md`.

@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { Loader2, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -19,6 +21,17 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -26,6 +39,7 @@ import { LeadStatus } from "@/lib/generated/prisma/enums";
 import {
   addLeadNote,
   convertLeadToCompany,
+  deleteLead,
   updateLeadStatus,
 } from "../actions";
 
@@ -246,5 +260,107 @@ export function LeadConvertDialog({
         </form>
       </DialogContent>
     </Dialog>
+  );
+}
+
+export function LeadDeleteDialog({
+  leadId,
+  contactName,
+  noteCount,
+  isConverted,
+  convertedCompanyName,
+}: {
+  leadId: string;
+  contactName: string;
+  noteCount: number;
+  isConverted: boolean;
+  convertedCompanyName?: string;
+}) {
+  const router = useRouter();
+  const [pending, startTransition] = useTransition();
+  const [confirm, setConfirm] = useState("");
+  const canDelete = confirm.trim() === contactName;
+
+  function handleDelete() {
+    if (!canDelete) return;
+    startTransition(async () => {
+      try {
+        await deleteLead(leadId);
+        toast.success(`${contactName} removed from leads`);
+        router.push("/dashboard/leads");
+        router.refresh();
+      } catch {
+        toast.error("Failed to delete lead");
+      }
+    });
+  }
+
+  return (
+    <AlertDialog
+      onOpenChange={(open) => {
+        if (!open) setConfirm("");
+      }}
+    >
+      <AlertDialogTrigger asChild>
+        <Button variant="destructive" disabled={pending}>
+          <Trash2 className="mr-2 size-4" />
+          Delete lead
+        </Button>
+      </AlertDialogTrigger>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Delete this lead?</AlertDialogTitle>
+          <AlertDialogDescription asChild>
+            <div className="space-y-3">
+              <p>
+                This permanently removes the lead record for{" "}
+                <span className="font-medium">{contactName}</span>
+                {noteCount > 0 && (
+                  <>
+                    {" "}and its{" "}
+                    <span className="font-medium tabular-nums">{noteCount}</span>{" "}
+                    note{noteCount === 1 ? "" : "s"}
+                  </>
+                )}
+                . This cannot be undone.
+              </p>
+              {isConverted && convertedCompanyName && (
+                <p className="rounded-md bg-amber-50 border border-amber-200 px-3 py-2 text-sm text-amber-900">
+                  Heads up: this lead was already converted to{" "}
+                  <span className="font-medium">{convertedCompanyName}</span>.
+                  The company will remain — only the lead history is removed.
+                </p>
+              )}
+              <p>
+                Type <span className="font-mono font-medium">{contactName}</span> to confirm.
+              </p>
+              <Input
+                autoFocus
+                value={confirm}
+                onChange={(e) => setConfirm(e.target.value)}
+                placeholder={contactName}
+              />
+            </div>
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel disabled={pending}>Cancel</AlertDialogCancel>
+          <AlertDialogAction
+            onClick={(e) => {
+              e.preventDefault();
+              handleDelete();
+            }}
+            disabled={!canDelete || pending}
+            className="bg-destructive text-white hover:bg-destructive/90"
+          >
+            {pending ? (
+              <><Loader2 className="mr-2 size-4 animate-spin" />Deleting…</>
+            ) : (
+              "Delete lead"
+            )}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }
